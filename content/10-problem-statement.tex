@@ -7,8 +7,7 @@
 
 \vorspannabschnitt{Ausgangslage}
 
-Beschreibt hier in wenigen Sätzen, welches Problem im Ausgangszustand besteht,
-wen es betrifft und warum eine technische Lösung sinnvoll ist.
+Bestehende Erkennungssysteme identifizieren bekannte Angriffe häufig anhand fester Regeln. Unbekannte oder veränderte Angriffsmuster können dadurch unentdeckt bleiben. Für eine wirksame Reaktion müssen Netzwerkereignisse daher erfasst, datenbasiert bewertet und in nachvollziehbare, kontrolliert umsetzbare Maßnahmen überführt werden.
 
 \vorspannabschnitt{Untersuchungsanliegen der individuellen Themenstellungen}
 
@@ -24,18 +23,17 @@ Lösung.
 
 \vorspannabschnitt{Zielsetzung}
 
-Ein bis zwei Sätze: Was soll am Ende der Arbeit vorliegen?
-
+Ziel ist ein modulares System, das Netzwerkereignisse erfasst, regel- und datenbasiert bewertet, verständlich interpretiert und kontrollierte Gegenmaßnahmen vorschlägt. Die Komponenten werden technologieoffen entwickelt, über definierte Schnittstellen verbunden und anhand reproduzierbarer Szenarien evaluiert.
 \vorspannabschnitt{Geplantes Ergebnis der individuellen Themenstellungen}
 
 \vorspannunterpunkt{1) Teilbereich A}
-Welches konkrete, überprüfbare Ergebnis liefert dieses Teilprojekt ab?
+Es entsteht eine isolierte, reproduzierbare Testumgebung mit überwachten Zielsystemen, normalem Testverkehr und dokumentierten Angriffsszenarien. Eine modulare Komponente erfasst und vereinheitlicht Netzwerkdaten. Mindestens ein regelbasiertes Erkennungsverfahren erzeugt Alarme, die zusammen mit den aufbereiteten Ereignissen über dokumentierte Schnittstellen bereitgestellt und hinsichtlich Erkennungsqualität, Fehlalarmen und Systembelastung evaluiert werden.
 
 \vorspannunterpunkt{2) Teilbereich B}
-\dots
+Es entsteht eine Analysekomponente zur ML-gestützten Anomalieerkennung. Sie verarbeitet aufbereitete Netzwerkdaten, vergleicht mehrere Verfahren und weist auffällige Merkmale aus. Regelbasierte Alarme und ML-Ergebnisse werden zu Sicherheitsvorfällen korreliert und mit einem gemeinsamen Risiko-Score bewertet. Modelle, Datenpipeline, Evaluation und eine dokumentierte Schnittstelle zur Bereitstellung der Vorfälle werden versioniert und getestet.
 
 \vorspannunterpunkt{3) Teilbereich C}
-\dots
+Es entsteht eine Komponente zur sprachmodellgestützten Interpretation bewerteter Sicherheitsvorfälle sowie ein Dashboard zur Darstellung und Bearbeitung. Das System erzeugt verständliche Erklärungen, priorisierte Maßnahmen und strukturierte Regelvorschläge. Ein kontrollierter Ablauf prüft Vorschläge, testet Änderungen in einer isolierten Umgebung und fordert vor der Aktivierung eine Freigabe an. Vorschläge, Prüfungen und Entscheidungen werden nachvollziehbar protokolliert.
 
 \vorspannabschnitt{Meilensteine}
 
@@ -45,12 +43,15 @@ Welches konkrete, überprüfbare Ergebnis liefert dieses Teilprojekt ab?
     \toprule
     \bfseries Meilenstein & \bfseries Datum \\
     \midrule
-    Analyse der Ausgangslage und Anforderungen & 30.09.2026 \\
-    Erstellung der Konzepte                    & 31.10.2026 \\
-    Implementierung der Systemkomponenten      & 30.11.2026 \\
-    Test der Systemkomponenten                 & 15.01.2027 \\
-    Integration des Gesamtsystems              & 15.02.2027 \\
-    Verfassen der Dokumentation                & 15.03.2027 \\
-  Abgabe der Diplomarbeit                    & 01.04.2027 \\
+    Antragsabgabe und Projektstart & 18.09.2026 \\
+    Anforderungen, Gesamtarchitektur, Datenformate und Schnittstellen festgelegt & 09.10.2026 \\
+    Isolierte Testumgebung, Zielsysteme, Datenerfassung und Angriffsszenarien konzipiert & 06.11.2026 \\
+    Erste Prototypen für Erkennung, ML-Analyse, Ereignisinterpretation und Dashboard umgesetzt & 04.12.2026 \\
+    Trainings- und Testdaten aufbereitet sowie Kernverfahren implementiert & 15.01.2026 \\
+    Ereigniskorrelation, Risiko-Score und durchgängiger Systemprototyp fertiggestellt & 12.02.2026 \\
+    Modellvergleich, Regelvalidierung, Dashboard und Gesamtevaluation abgeschlossen & 12.03.2027 \\
+    Implementierung abgeschlossen und vollständiger Dokumentationsentwurf erstellt & 09.04.2027 \\
+    Abschließende Systemtests, Fehlerbehebung und formale Kontrolle abgeschlossen & 23.04.2027 \\
+    Abgabe der Diplomarbeit  & 03.05.2027 \\
   \bottomrule
 \end{tabular}
