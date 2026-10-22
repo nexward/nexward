@@ -1,5 +1,5 @@
 \chapter{Technische Grundlagen}
-\abschnittsautor{M. Musterfrau}
+\abschnittsautor{S. Kaufmann, M. Raichle, P. Riedl}
 
 Hier steht alles, was zum Verständnis der praktischen Umsetzung nötig ist --
 und nur das. Jede Technologie, die ihr später verwendet, wird hier einmal
@@ -27,3 +27,214 @@ steht aber nicht mehr im Inhaltsverzeichnis. Tiefer gliedert ihr nicht.
 Erklärt Technologien in eurer eigenen Formulierung. Wörtlich übernommene
 Passagen gehören in Anführungszeichen und mit Seitenangabe belegt, sonst gilt
 das als Plagiat.
+
+
+
+\newpage
+\section{Teilbereich C: Sprachmodellgestützte Sicherheitsanalyse}
+\label{subsec:teilbereich-c}
+
+\subsection{Zielsetzung und technische Anforderungen}
+
+Ziel dieses Teilbereichs ist die Planung einer
+sprachmodellgestützten Sicherheitsvorfallsbewertung.
+Das System soll technische Ereignisdaten aufbereiten,
+deren sicherheitsrelevante Bedeutung erläutern und geeignete
+technische Maßnahmen vorschlagen. Zusätzlich
+sollen strukturierte Regelvorschläge erzeugt werden, die im weiteren
+Verlauf geprüft und kontrolliert vom Nutzer freigegeben werden können.
+
+Ein wesentlicher Anwendungsfall ist die Unterstützung bei dera
+Untersuchung von Ereignissen, die beispielsweise durch ungewöhnliche
+Netzwerkverbindungen, fehlgeschlagene Anmeldeversuche oder andere
+sicherheitsrelevante Aktivitäten ausgelöst werden. Das Sprachmodell
+soll die verfügbaren Informationen zusammenfassen, mögliche
+Ursachen erläutern und die vorgeschlagenen Maßnahmen nachvollziehbar
+begründen.
+
+Dabei muss zwischen tatsächlich beobachteten Informationen und
+Interpretationen des Modells unterschieden werden. Ein einzelner
+fehlgeschlagener Anmeldeversuch belegt beispielsweise noch keinen
+erfolgreichen Angriff. Reichen die vorhandenen Daten für eine
+verlässliche Bewertung nicht aus, soll das Modell auf fehlende
+Informationen hinweisen, anstatt unbelegte Schlussfolgerungen zu
+erzeugen.
+
+Neben der fachlichen Qualität sind die Einhaltung vorgegebener
+Ausgabeformate, die lokale Ausführbarkeit und die nachvollziehbare
+Verarbeitung der Ergebnisse wichtige Anforderungen. Die erzeugten
+Daten müssen sich in der Anwendung weiterverarbeiten und den
+zugehörigen Sicherheitsvorfällen eindeutig zuordnen lassen.
+
+\subsection{Auswahl des Sprachmodells}
+
+Als Ausgangspunkt wird das bereits untersuchte lokale Qwen-Modell
+mit sieben Milliarden Parametern verwendet. Dieses Modell dient als
+Referenz für die weitere Bewertung, da seine Ergebnisse mit
+alternativen Modellen unter vergleichbaren Bedingungen untersucht
+werden können.
+
+Als Vergleichskandidat wird Qwen3-8B vorgesehen. Die Modellfamilie
+wurde unter anderem hinsichtlich Schlussfolgerungsfähigkeit,
+Anweisungsbefolgung und Programmieraufgaben weiterentwickelt.
+Diese Eigenschaften sind für die Analyse komplexerer
+Sicherheitsvorfälle und die Erzeugung strukturierter Vorschläge
+von Interesse.
+
+Zusätzlich kann Llama 3.1 8B Instruct als Vertreter einer anderen
+Modellfamilie berücksichtigt werden. Dadurch lässt sich untersuchen,
+ob Unterschiede zwischen den Modellen bei den konkreten Aufgaben
+des Projekts tatsächlich messbar sind.
+
+Die Auswahl erfolgt nicht ausschließlich anhand der Modellgröße.
+Entscheidend sind die fachliche Korrektheit der Analysen, die
+Nachvollziehbarkeit der Begründungen, der Umgang mit unvollständigen
+Informationen und die Einhaltung des vorgegebenen Ausgabeformats.
+Ebenso werden die benötigte Rechenleistung und die Antwortzeit
+berücksichtigt.
+
+Die offiziellen Modellbeschreibungen dienen zunächst als Grundlage
+für die Vorauswahl. Eine endgültige Entscheidung soll erst nach
+vergleichbaren Tests mit einheitlichen Eingabedaten getroffen
+werden.\footnote{Vgl. Qwen, \url{https://huggingface.co/Qwen/Qwen3-8B}.}
+\footnote{Vgl. Meta, \url{https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct}.}
+
+\subsection{Technologische Grundlagen des Frontends}
+
+Für die Entwicklung der Benutzeroberfläche wird eine Kombination
+aus React, TypeScript und Vite vorgesehen. React ermöglicht die
+Aufteilung des Dashboards in wiederverwendbare Komponenten.
+Dadurch können beispielsweise Ereignislisten, Detailansichten,
+Risikokennzahlen und Dialoge zur Freigabe von Regelvorschlägen
+getrennt entwickelt und später gemeinsam eingesetzt werden.
+
+TypeScript ergänzt JavaScript um ein statisches Typsystem. Damit
+können die Datenstrukturen der Anwendung, etwa Sicherheitsereignisse,
+Modellanalysen und Regelvorschläge, ausdrücklich definiert werden.
+Fehler bei der Verwendung dieser Daten lassen sich dadurch bereits
+während der Entwicklung teilweise erkennen. Die Validierung der
+tatsächlich übertragenen Daten bleibt jedoch Aufgabe des Backends.
+
+Vite wird als Entwicklungs- und Build-System vorgesehen. Es soll
+eine einfache Entwicklungsumgebung für das React-Frontend
+bereitstellen und die Erstellung der späteren Anwendung ermöglichen.
+Da die Benutzeroberfläche hauptsächlich mit einer separaten
+Backend-API kommunizieren soll, ist zunächst kein zusätzliches
+Full-Stack-Framework erforderlich.
+
+Für die Gestaltung werden Tailwind CSS und shadcn/ui vorgesehen.
+Tailwind CSS unterstützt eine konsistente Gestaltung durch
+wiederverwendbare Utility-Klassen. shadcn/ui stellt anpassbare
+Komponenten für typische Interaktionen bereit, darunter Formulare,
+Dialoge, Registerkarten und Schaltflächen. Die Komponenten können
+an die Anforderungen des Sicherheitsdashboards angepasst werden.
+
+Die Gestaltung soll eine übersichtliche Darstellung der Ereignisse
+und ihrer Bearbeitungszustände ermöglichen. Kritische Informationen
+müssen schnell erkennbar sein, ohne dass die Benutzeroberfläche
+durch zu viele Farben oder dekorative Elemente überladen wird.
+
+\footnote{Vgl. React, \url{https://react.dev/learn/typescript};
+Vite, \url{https://vite.dev/guide/};
+Tailwind CSS, \url{https://tailwindcss.com/docs/styling-with-utility-classes};
+shadcn/ui, \url{https://ui.shadcn.com/docs}.}
+
+\subsection{Backend und Kommunikation mit dem Sprachmodell}
+
+Als Backend-Technologie wird Python mit FastAPI vorgesehen.
+Das Backend übernimmt die Verarbeitung der Anfragen, die
+Anbindung des lokalen Sprachmodells und die Validierung der
+zurückgegebenen Daten. Die Trennung zwischen Frontend und
+Backend ermöglicht es, die Benutzeroberfläche und die
+Analysekomponente unabhängig voneinander weiterzuentwickeln.
+
+Die Kommunikation erfolgt über definierte API-Endpunkte.
+Das Frontend kann beispielsweise Sicherheitsvorfälle abrufen,
+eine Analyse anfordern oder den Prüfstatus eines Regelvorschlags
+anzeigen. Die fachliche Verarbeitung und die Berechtigungsprüfung
+erfolgen dabei im Backend.
+
+Zur Beschreibung und Validierung der übertragenen Daten werden
+Pydantic-Datenmodelle vorgesehen. Diese legen fest, welche Felder
+vorhanden sein müssen und welche Datentypen beziehungsweise
+Wertebereiche zulässig sind. Dadurch können fehlerhafte oder
+unvollständige Anfragen und Antworten gezielt erkannt werden.
+
+Für die lokale Ausführung des Sprachmodells wird Ollama als
+mögliche Laufzeitumgebung berücksichtigt. Die konkrete
+Modellversion und Konfiguration werden im Zuge der Implementierung
+festgelegt. Die Modellanbindung soll über eine klar definierte
+Schnittstelle erfolgen, damit das Modell bei Bedarf ausgetauscht
+werden kann, ohne die gesamte Anwendung neu entwickeln zu müssen.
+
+\footnote{Vgl. FastAPI, \url{https://fastapi.tiangolo.com/};
+Ollama, \url{https://docs.ollama.com/}.}
+
+\subsection{Strukturierte Ausgaben und Datenhaltung}
+
+Für die Weiterverarbeitung der Modellantworten wird ein
+verbindliches JSON-Schema vorgesehen. Dieses legt fest, welche
+Informationen eine Analyse enthalten muss. Dazu gehören
+beispielsweise eine Zusammenfassung des Ereignisses, die
+Begründung der Risikobewertung, empfohlene Maßnahmen und
+strukturierte Angaben zu einem möglichen Regelvorschlag.
+
+Die Verwendung eines festen Schemas erleichtert die Verarbeitung
+der Modellausgaben durch das Backend und die Darstellung im
+Frontend. Ein syntaktisch gültiges JSON-Dokument ist allerdings
+noch kein Nachweis für die fachliche Richtigkeit seiner Inhalte.
+Deshalb müssen die Ergebnisse zusätzlich anhand definierter
+Validierungsregeln geprüft werden.
+
+Besonders bei Regelvorschlägen dürfen fehlende Parameter nicht
+durch erfundene Angaben ergänzt werden. Wenn beispielsweise eine
+Zieladresse nicht eindeutig bestimmt werden kann, muss der
+Vorschlag als unvollständig gekennzeichnet und zur weiteren
+Prüfung zurückgehalten werden.
+
+Für die dauerhafte Speicherung wird PostgreSQL als relationale
+Datenbank vorgesehen. Darin können Sicherheitsereignisse,
+Analysen, Regelvorschläge, Prüfresultate und Entscheidungen
+miteinander verknüpft werden. Eine eindeutige Zuordnung zwischen
+Ereignis und Vorschlag ermöglicht es, die Grundlage einer
+Entscheidung später nachzuvollziehen.
+
+\footnote{Vgl. PostgreSQL, \url{https://www.postgresql.org/docs/};
+Ollama, \url{https://docs.ollama.com/capabilities/structured-outputs}.}
+
+\subsection{Sicherheitskonzept und kontrollierte Freigabe}
+
+Ein wesentliches Architekturprinzip ist die Trennung zwischen
+der Erstellung eines KI-Vorschlags und seiner tatsächlichen
+Ausführung. Das Sprachmodell soll ausschließlich Analysen und
+Empfehlungen erzeugen. Es erhält keine direkten Berechtigungen
+zur eigenständigen Änderung produktiver Sicherheitskonfigurationen.
+
+Nach der Erstellung wird ein Regelvorschlag durch das Backend
+auf strukturelle Vollständigkeit und technische Plausibilität
+geprüft. Anschließend wird er einem kontrollierten Prüfprozess
+zugeführt. Für die Erprobung von Änderungen ist eine isolierte
+Testumgebung vorgesehen, in der mögliche Auswirkungen untersucht
+werden können, ohne unmittelbar produktive Systeme zu verändern.
+
+Erst nach erfolgreicher Prüfung und ausdrücklicher Freigabe durch
+eine autorisierte Person darf eine separate Ausführungskomponente
+die Änderung aktivieren. Die entsprechenden Berechtigungen und
+Statusübergänge müssen serverseitig durchgesetzt werden. Eine
+bloße Einschränkung der Schaltflächen im Frontend ist dafür
+nicht ausreichend.
+
+Die einzelnen Schritte sollen nachvollziehbar protokolliert
+werden. Dazu gehören der ursprüngliche Vorschlag, die
+Validierungsergebnisse, die Testresultate, die Freigabeentscheidung
+und eine gegebenenfalls erfolgte Aktivierung. Zusätzlich ist
+eine Möglichkeit zur Rücknahme problematischer Änderungen
+vorzusehen.
+
+Durch diese Aufteilung bleiben die Funktionen des Sprachmodells
+von den sicherheitskritischen Operationen getrennt. Die KI
+unterstützt den Analysten bei der Beurteilung eines Vorfalls,
+während die Anwendung die Validierung, Autorisierung und
+kontrollierte Ausführung übernimmt. Die konkrete technische
+Umsetzung und Überprüfung dieser Abläufe erfolgt im Rahmen
+der praktischen Realisierung.
