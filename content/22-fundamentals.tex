@@ -5,22 +5,35 @@ Hier steht alles, was zum Verständnis der praktischen Umsetzung nötig ist --
 und nur das. Jede Technologie, die ihr später verwendet, wird hier einmal
 erklärt und belegt.
 
-\section{Teilbereich A}
+\section{Teilbereich A: Netzwerkverkehrsanalyse und regelbasierte Angriffserkennung}
 
-Beim ersten Auftreten schreibt ihr eine Abkürzung aus: \ac{API}. Danach
-genügt die Kurzform: \ac{API}. Alle Abkürzungen sammelt ihr in
-\texttt{diplomarbeit.tex} im Abkürzungsverzeichnis.
+\subsection{Intrusion Detection Systems und signaturbasierte Erkennung}
 
-\subsection{Ein Unterabschnitt}
+In der heutigen IT-Sicherheit ist es wichtig, verdächtige Aktivitäten in Netzwerken frühzeitig zu erkennen. Dafür werden sogenannte Intrusion Detection Systems (IDS) eingesetzt. Diese überwachen Netzwerkverkehr oder Systemereignisse und untersuchen diese auf Hinweise auf mögliche Angriffe. Dabei wird zwischen einem IDS, das Auffälligkeiten erkennt und meldet, und einem Intrusion Prevention System (IPS) unterschieden, das zusätzlich aktiv in den Netzwerkverkehr eingreifen kann. Welche Aufgaben ein solches System übernehmen kann, hängt von seiner Konfiguration und der verwendeten Erkennungsmethode ab [1].
 
-Zitiert wird im IEEE-Stil mit einer Nummer in eckigen
-Klammern~\cite{beispiel-artikel}. Mehrere Quellen auf einmal gehen
-auch~\cite{beispiel-buch,beispiel-online}.
+Für diese Diplomarbeit ist vor allem die netzwerkbasierte Angriffserkennung relevant. Dabei werden Datenpakete untersucht, die über eine Netzwerkschnittstelle übertragen werden. Zu den wichtigen Informationen gehören beispielsweise Quell- und Ziel-IP-Adresse, verwendete Protokolle und Ports sowie, sofern verfügbar, weitere Inhalte der Kommunikation. Voraussetzung für eine erfolgreiche Analyse ist, dass der Netzwerkverkehr an einer geeigneten Stelle erfasst wird. Wenn Daten nicht über die überwachte Netzwerkschnittstelle laufen, können sie von diesem Sensor auch nicht zuverlässig untersucht werden.
 
-\subsubsection{Eine Ebene tiefer}
+Eine Möglichkeit zur Erkennung verdächtiger Aktivitäten ist die signaturbasierte Erkennung. Dabei werden vordefinierte Regeln verwendet, die bestimmte Merkmale eines bekannten oder gezielt beschriebenen Ereignisses erkennen. Sobald die festgelegten Bedingungen erfüllt sind, kann das System einen Alarm erzeugen. Diese Methode hat den Vorteil, dass die Erkennungsregeln nachvollziehbar sind und anhand gezielter Testfälle überprüft werden können. Sie eignet sich deshalb gut für eine kontrollierte Testumgebung. Allerdings können unbekannte Angriffe oder veränderte Angriffsmuster unentdeckt bleiben, wenn keine passende Regel vorhanden ist. Auch falsch ausgelöste Alarme sind möglich. Die Qualität der Erkennung hängt daher unter anderem von den verwendeten Regeln und den verfügbaren Netzwerkdaten ab [1].
 
-Die vierte Ebene könnt ihr verwenden, aber sparsam. Sie wird nummeriert,
-steht aber nicht mehr im Inhaltsverzeichnis. Tiefer gliedert ihr nicht.
+\subsubsection{Erfassung und Analyse des Netzwerkverkehrs}
+
+Für die Untersuchung von Netzwerkverkehr können unterschiedliche Werkzeuge verwendet werden. Wireshark ist ein Werkzeug zur detaillierten Analyse einzelner Netzwerkpakete und ihrer Kommunikationsabläufe. Damit lassen sich beispielsweise Protokollinformationen, Verbindungsaufbau und übertragene Daten untersuchen. [4] Die Aufzeichnungen können in PCAP-Dateien gespeichert werden. Dadurch ist es möglich, denselben Netzwerkverkehr später erneut zu analysieren und Ergebnisse unter vergleichbaren Bedingungen zu überprüfen.
+
+Für die automatische Erkennung von verdächtigen Aktivitäten eignet sich Suricata. Dabei handelt es sich um ein System zur Netzwerküberwachung, das unter anderem regelbasierte Erkennung unterstützt. Es kann Netzwerkverkehr anhand definierter Signaturen untersuchen und bei passenden Treffern Alarme erzeugen. Zusätzlich kann Suricata Ereignisse im EVE-JSON-Format ausgeben. Diese strukturierten Daten enthalten abhängig vom Ereignistyp beispielsweise Zeitstempel, IP-Adressen, Protokollinformationen und Angaben zur ausgelösten Regel [2], [3].
+
+\subsection{Normalisierung und Bereitstellung der Daten}
+
+Die von einem Erkennungssystem erzeugten Ereignisse müssen für eine weitere Verarbeitung in einer einheitlichen Form vorliegen. Suricata stellt dafür unter anderem EVE-JSON bereit, das Erkennungsalarme und weitere Ereignisse strukturiert speichert [2]. Da die nachfolgenden Komponenten des Gesamtprojekts mit diesen Daten weiterarbeiten sollen, werden die benötigten Informationen ausgelesen und in ein gemeinsames Datenschema überführt. Zu den vorgesehenen Feldern gehören beispielsweise der Zeitstempel, die Quell- und Ziel-IP-Adresse, das verwendete Protokoll, die Ereignisart sowie die Kennung und Beschreibung der ausgelösten Regel.
+
+Dieser Vorgang wird als Normalisierung bezeichnet. Durch die Vereinheitlichung können andere Komponenten die Ereignisse einfacher verarbeiten, ohne die ursprüngliche Struktur jeder Ausgabe im Detail kennen zu müssen. Dabei ist darauf zu achten, dass wichtige Informationen erhalten bleiben und fehlende oder fehlerhafte Daten erkannt werden. Eine Application Programming Interface (API) kann anschließend dazu verwendet werden, die normalisierten Ereignisse anderen Komponenten kontrolliert zur Verfügung zu stellen. Die Schnittstelle sollte dokumentiert sein und festlegen, welche Daten verfügbar sind und wie Fehlerfälle behandelt werden.
+
+\subsubsection{Test und Evaluation}
+
+Um die entwickelte Lösung beurteilen zu können, muss sie anhand definierter und reproduzierbarer Testfälle überprüft werden. Dabei wird beispielsweise untersucht, ob ein absichtlich erzeugtes Testmuster einen Alarm auslöst und ob normaler, unauffälliger Netzwerkverkehr nicht unnötig als verdächtig eingestuft wird. Für die Tests sollte eine freigegebene, isolierte Umgebung verwendet werden, damit keine fremden oder produktiven Systeme beeinträchtigt werden.
+
+Bei der Auswertung werden korrekt erkannte Auffälligkeiten als True Positives und fälschlich ausgelöste Alarme als False Positives bezeichnet. Werden vorhandene Auffälligkeiten nicht erkannt, handelt es sich um False Negatives. Diese Werte ermöglichen eine genauere Beurteilung der Erkennungsqualität. Ergänzend können die Laufzeit der Analyse, der Speicherverbrauch, die Anzahl verarbeiteter Ereignisse und die Vollständigkeit der ausgegebenen Daten gemessen werden.
+
+Die Ergebnisse sollten mit dokumentierten Testbedingungen, verwendeten Regeln und den zugehörigen Eingabedaten festgehalten werden. Dadurch können einzelne Testläufe miteinander verglichen und später wiederholt werden. Ziel ist es, nicht nur die grundsätzliche Funktion der Angriffserkennung nachzuweisen, sondern auch deren Grenzen und die Zuverlässigkeit der anschließenden Datenverarbeitung zu beurteilen.
 
 \section{Teilbereich B}
 
