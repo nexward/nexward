@@ -35,12 +35,43 @@ Bei der Auswertung werden korrekt erkannte Auffälligkeiten als True Positives u
 
 Die Ergebnisse sollten mit dokumentierten Testbedingungen, verwendeten Regeln und den zugehörigen Eingabedaten festgehalten werden. Dadurch können einzelne Testläufe miteinander verglichen und später wiederholt werden. Ziel ist es, nicht nur die grundsätzliche Funktion der Angriffserkennung nachzuweisen, sondern auch deren Grenzen und die Zuverlässigkeit der anschließenden Datenverarbeitung zu beurteilen.
 
-\section{Teilbereich B}
+\section{Teilbereich B: Datenbasierte Anomalieerkennung und Risikobewertung}
+\abschnittsautor{M. Raichle}
+\label{sec:teilbereich-b}
 
-Erklärt Technologien in eurer eigenen Formulierung. Wörtlich übernommene
-Passagen gehören in Anführungszeichen und mit Seitenangabe belegt, sonst gilt
-das als Plagiat.
+\subsection{Grundlagen der Anomalieerkennung}
 
+Die Anomalieerkennung untersucht, ob beobachtetes Verhalten von einem zuvor erfassten oder innerhalb eines Datensatzes erkennbaren Normalverhalten abweicht. Im Netzwerk können beispielsweise eine ungewöhnlich hohe Anzahl an Verbindungen oder veränderte Kommunikationsmuster auffallen. Anders als bei der signaturbasierten Erkennung muss dafür nicht für jedes Angriffsmuster eine eigene Regel vorhanden sein. Dadurch können auch bisher nicht ausdrücklich beschriebene Aktivitäten auffällig werden. Voraussetzung ist allerdings, dass sich diese in den untersuchten Merkmalen ausreichend vom normalen Verhalten unterscheiden.
+
+Eine Abweichung ist noch kein Nachweis für einen Angriff. Auch erlaubte Aktivitäten, etwa eine größere Datensicherung oder die Installation von Software, können ungewöhnlichen Netzwerkverkehr verursachen. Umgekehrt kann ein Angriff unentdeckt bleiben, wenn er dem erfassten Normalverhalten ähnelt. Die Auswahl geeigneter Vergleichsdaten und die Festlegung der Erkennungsschwelle beeinflussen deshalb, welche Ereignisse gemeldet werden.\footnote{Vgl. K. Scarfone und P. Mell, \textit{Guide to Intrusion Detection and Prevention Systems (IDPS)}, NIST SP 800-94, 2007, Abschnitt 2.2.2, \url{https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-94.pdf}, abgerufen am 23.10.2026.}
+
+Für die Umsetzung ist zwischen der Suche nach Ausreißern in vorhandenen Daten und der Bewertung neuer Beobachtungen zu unterscheiden. Bei der ersten Variante kann der untersuchte Datensatz bereits auffällige Einträge enthalten. Bei der zweiten Variante wird ein Modell anhand möglichst unauffälliger Referenzdaten erstellt und anschließend auf neue Daten angewendet. Diese Unterscheidung ist für die Auswahl und Verwendung der Verfahren relevant.\footnote{Vgl. scikit-learn, \textit{Novelty and Outlier Detection}, \url{https://scikit-learn.org/stable/modules/outlier_detection.html}, abgerufen am 23.10.2026.}
+
+\subsection{Aufbereitung der Netzwerkdaten und Merkmalsbildung}
+
+Die Grundlage der Analyse bilden die in Teilbereich A erfassten Netzwerkdaten. Neben ausgelösten Alarmen werden Informationen über reguläre Verbindungen benötigt, damit auch Verhalten ohne passenden Regeltreffer untersucht werden kann. Suricata kann beispielsweise Flow-Ereignisse mit Angaben zu übertragenen Paketen und Bytes sowie Beginn und Ende einer Verbindung ausgeben. Die Verfügbarkeit hängt von der Konfiguration und dem jeweiligen Ereignistyp ab.\footnote{Vgl. Open Information Security Foundation, \textit{Eve JSON Format}, insbesondere Abschnitt zu Flow-Ereignissen, \url{https://docs.suricata.io/en/latest/output/eve/eve-json-format.html}, abgerufen am 23.10.2026.}
+
+Aus diesen Angaben werden Merkmale gebildet, die das Kommunikationsverhalten in Zahlen beschreiben. Für Nexward kommen beispielsweise die Verbindungsanzahl je Quelladresse innerhalb eines Zeitfensters, die Anzahl unterschiedlicher Zieladressen und Zielports sowie übertragene Datenmengen infrage. Viele verschiedene Zielports innerhalb kurzer Zeit könnten auf einen Portscan hinweisen. Dieses Beispiel beschreibt einen möglichen Zusammenhang und ersetzt keine Überprüfung anhand von Testdaten.
+
+Die Länge der Zeitfenster bestimmt, welche Aktivitäten gemeinsam betrachtet werden. Kurze Fenster können schnelle Veränderungen sichtbar machen, während längere Fenster auch langsamere Abläufe erfassen. Die konkrete Fensterlänge und Merkmalsauswahl sollen anhand der vorgesehenen Szenarien untersucht werden. Fehlende Werte müssen dabei von tatsächlich gemessenen Nullwerten unterschieden werden.
+
+Bei abstandsbasierten Verfahren ist außerdem die Skalierung der Merkmale zu beachten. Unterschiedliche Größenordnungen, etwa bei Bytezahlen und Verbindungsanzahlen, können die berechneten Abstände stark beeinflussen. Eine Standardisierung kann diesen Einfluss verringern. Die dafür benötigten Kennwerte werden ausschließlich aus den Trainingsdaten bestimmt und danach unverändert auf die Testdaten angewendet.\footnote{Vgl. scikit-learn, \textit{Preprocessing data}, Abschnitt 8.3.1, \url{https://scikit-learn.org/stable/modules/preprocessing.html}, abgerufen am 23.10.2026.}
+
+\subsection{Verfahren zur Anomalieerkennung}
+
+Als Vergleichskandidaten werden zunächst Isolation Forest und Local Outlier Factor betrachtet. Beide Verfahren benötigen für die Modellbildung keine vorgegebene Angriffsklasse für jede Beobachtung. Sie verwenden jedoch unterschiedliche Ansätze zur Bewertung von Auffälligkeiten.
+
+Isolation Forest teilt Daten wiederholt anhand zufällig ausgewählter Merkmale und Trennwerte auf. Dadurch entstehen mehrere Baumstrukturen. Beobachtungen, die sich deutlich von den übrigen Daten unterscheiden, lassen sich häufig mit weniger Aufteilungen isolieren. Die durchschnittliche Pfadlänge über mehrere Bäume bildet die Grundlage der Bewertung. Für Nexward soll untersucht werden, ob sich damit auffällige Kombinationen der ausgewählten Netzwerkmerkmale erkennen lassen.\footnote{Vgl. scikit-learn, \textit{IsolationForest}, \url{https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html}, abgerufen am 23.10.2026.}
+
+Local Outlier Factor (LOF) vergleicht die lokale Dichte einer Beobachtung mit der Dichte ihrer nächsten Nachbarn im Merkmalsraum. Liegt eine Beobachtung in einem deutlich dünner besetzten Bereich als ihre Nachbarn, wird sie als auffällig bewertet. Die Anzahl der berücksichtigten Nachbarn beeinflusst das Ergebnis. Für die spätere Bewertung neuer Daten muss bei der scikit-learn-Implementierung ausdrücklich der Modus zur Erkennung neuer Auffälligkeiten aktiviert werden.\footnote{Vgl. scikit-learn, \textit{LocalOutlierFactor}, \url{https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.LocalOutlierFactor.html}, abgerufen am 23.10.2026.}
+
+Eine endgültige Verfahrensauswahl erfolgt erst nach dem Vergleich mit getrennten Trainings- und Testdaten. Dabei sollen erkannte Angriffe, Fehlalarme, Laufzeit und Speicherbedarf berücksichtigt werden.
+
+\subsection{Zusammenführung und Risikobewertung}
+
+Für Nexward ist vorgesehen, regelbasierte Alarme und Ergebnisse der Anomalieerkennung gemeinsam auszuwerten. Zusammengehörige Meldungen sollen anhand zeitlicher Nähe und passender Kommunikationsdaten zu Vorfällen zusammengeführt werden. Bei Suricata ermöglicht das Feld \texttt{flow\_id} die Zuordnung verschiedener Ereignisse zu einem gemeinsamen Datenfluss. Ein Vorfall kann jedoch mehrere Datenflüsse umfassen und benötigt daher zusätzliche Zuordnungskriterien.\footnote{Vgl. Open Information Security Foundation, \textit{Eve JSON Format}, Abschnitt zum Feld \texttt{flow\_id}, \url{https://docs.suricata.io/en/latest/output/eve/eve-json-format.html}, abgerufen am 23.10.2026.}
+
+Der Anomalie-Score beschreibt die vom jeweiligen Verfahren ermittelte Auffälligkeit. Er ist nicht automatisch eine Angriffswahrscheinlichkeit. Der für Nexward geplante Risiko-Score soll zusätzlich die Schwere zugehöriger Regeltreffer und die Bedeutung des betroffenen Systems berücksichtigen. Er dient zunächst der Priorisierung von Vorfällen. Seine Berechnung, Gewichtungen und Grenzen müssen dokumentiert und anhand definierter Szenarien überprüft werden. Damit eine Bewertung nachvollziehbar bleibt, sollen neben dem Gesamtwert auch die zugrunde liegenden Meldungen und Einzelbewertungen bereitgestellt werden.
 
 
 \newpage
